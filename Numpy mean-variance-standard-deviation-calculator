@@ -1,4 +1,4 @@
-"""program to fulfill project - boilerplate-mean-variance-standard-deviation-calculator - from 
+"""program to fulfill project - boilerplate-mean-variance-standard-deviation-calculator - from
 freecodecamp.com"""
 
 import numpy as np
@@ -24,6 +24,7 @@ def calculate(list):
     calculations['min'] = a_min(list_array)
     calculations['max'] = a_max(list_array)
     calculations['variance'] = a_variance(list_array)
+    calculations['deviation'] = a_deviation(list_array)
 
     return calculations
 
