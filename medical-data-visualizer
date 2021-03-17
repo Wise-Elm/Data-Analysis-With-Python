@@ -1,0 +1,84 @@
+# -*- coding: utf-8 -*-
+
+"""Program to fulfill project - "boilerplate-medical-data-visualizer" - from
+course Data-Analysis-With-Python, from freecodecamp.com"""
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Import data
+df = pd.read_csv('medical_data.csv')
+
+# Add 'overweight' column
+df['overweight'] = (df['weight'] / ((df['height'] / 100)**2) > 25).astype(int)
+
+# Normalize data by making 0 always good and 1 always bad. If the value of 'cholestorol' or 'gluc' is 1, make the
+# value 0. If the value is more than 1, make the value 1.
+df['cholesterol'] = (df['cholesterol'] > 1).astype(int)
+df['gluc'] = (df['gluc'] > 1).astype(int)
+
+
+# Draw Categorical Plot
+def draw_cat_plot():
+    """Draws Categorical Plot from data in previously imported .csv"""
+
+    # Create DataFrame for cat plot using `pd.melt` using just the values from 'cholesterol', 'gluc', 'smoke', 'alco',
+    # 'active', and 'overweight'.
+    df_cat = pd.melt(df, id_vars='cardio', value_vars=['cholesterol', 'gluc', 'smoke', 'alco', 'active', 'overweight'])
+
+    # Group and reformat the data to split it by 'cardio'. Show the counts of each feature. You will have to rename
+    # one of the collumns for the catplot to work correctly.
+    df_cat = pd.DataFrame(df_cat.groupby(['cardio', 'variable', 'value'])['value'].count())
+    df_cat.rename(columns={'value': 'total'}, inplace=True)
+    df_cat.reset_index(inplace=True)
+
+    # Draw the catplot with 'sns.catplot()'
+    fig = sns.catplot(x='variable',
+                      y='total',
+                      hue='value',
+                      col='cardio',
+                      data=df_cat,
+                      kind='bar',
+                      ci=None)
+
+    # Do not modify the next two lines
+    fig.savefig('catplot.png')
+    return fig
+
+
+# Draw Heat Map
+def draw_heat_map():
+    """Draws Heat Map from data in previously imported .csv"""
+
+    # Clean the data of outlying height, weight, and blood pressure issues
+    _df_heat = (df['ap_lo'] <= df['ap_hi']) & \
+        (df['height'] >= df['height'].quantile(0.025)) & \
+        (df['height'] <= df['height'].quantile(0.975)) & \
+        (df['weight'] >= df['weight'].quantile(0.025)) & \
+        (df['weight'] <= df['weight'].quantile(0.975))
+
+    # Calculate the correlation matrix
+    _data = df[_df_heat]
+    corr = _data.corr()
+
+    # Generate a mask for the upper triangle
+    mask = np.zeros_like(corr)
+    mask[np.triu_indices_from(mask)] = True
+
+    # Set up the matplotlib figure
+    fig, ax = plt.subplots(figsize=(10, 10))
+
+    # Draw the heatmap with 'sns.heatmap()'
+    ax = sns.heatmap(corr, mask=mask, annot=True, square=True, linewidths=.8, fmt='.1f', vmin=-0.1, vmax=0.25,
+                     center=0, cbar_kws={'shrink': .4, 'format': '%.2f'})
+
+    # Do not modify the next two lines
+    fig.savefig('heatmap.png')
+    return fig
+
+
+if __name__ == '__main__':
+    draw_cat_plot()
+    draw_heat_map()
