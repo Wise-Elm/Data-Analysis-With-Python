@@ -1,0 +1,70 @@
+# -*- coding: utf-8 -*-
+
+"""Program to fulfill project - "boilerplate-sea-level-predictor" - from
+course Data-Analysis-With-Python, from freecodecamp.com"""
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.stats import linregress
+import numpy as np
+
+
+PREDICTION_YEAR = 2050  # Year outside of dataframe to end linear regression line. Used for predictions.
+MODIFIED_START_YEAR = 2000  # Year to start second linear regression line.
+
+
+def draw_plot():
+    # Read data from file
+    df = pd.read_csv('epa-sea-level.csv')
+
+    # Create scatter plot
+    fig, ax = plt.subplots()
+    ax.scatter(x=df['Year'], y=df['CSIRO Adjusted Sea Level'])
+
+    # Create first line of best fit
+    x = df['Year']
+    y = df['CSIRO Adjusted Sea Level']
+
+    res = linregress(x, y)
+
+    # extend linear regression line through the year 2050
+    _first_line_years_exteneded = np.arange(df.loc[0, 'Year'], PREDICTION_YEAR, 1)
+
+    # Plots the linear regression line using years_extended
+    plt.plot(_first_line_years_exteneded, res.intercept + res.slope * _first_line_years_exteneded, 'r',
+             label='1880 - 2013')
+
+    # New Data Frame to calculate second linear regression line.
+    _df_two = df.copy()
+    _index_drop = _df_two[_df_two['Year'] == MODIFIED_START_YEAR].index.values
+    _index_drop = int(_index_drop)
+
+    # dropping rows up until the df['Year'] == MODIFIED_START_YEAR
+    _df_two = _df_two.drop(df.index[: _index_drop]).reset_index(drop=True)
+
+    # Create second line of best fit
+    x_two = _df_two['Year']
+    y_two = _df_two['CSIRO Adjusted Sea Level']
+
+    res_two = linregress(x_two, y_two)
+
+    _second_line_years_extended = np.arange(_df_two.loc[0, 'Year'], PREDICTION_YEAR, 1)
+    plt.plot(_second_line_years_extended, res_two.intercept + res_two.slope * _second_line_years_extended, 'g',
+             label='2000 - 2013')
+
+    # Add labels and title
+    plt.plot(x, y, 'o', label='Sea Level')
+    plt.xlabel('Year')
+    plt.ylabel('Sea Level (inches)')
+    plt.title('Rise in Sea Level')
+
+    plt.legend()
+    plt.show()
+
+    # Save plot and return data for testing (DO NOT MODIFY)
+    plt.savefig('sea_level_plot.png')
+    return plt.gca()
+
+
+draw_plot()
